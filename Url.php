@@ -87,7 +87,7 @@ class Url
      * @access  public
      * @return array
      */
-    public function getUriSegments()
+    public static function getUriSegments()
     {
         return explode('/', self::getUriString());
     }
@@ -102,9 +102,52 @@ class Url
      * @access  public
      * @return string
      */
-    public function getUriSegment($segment)
+    public static function getUriSegment($segment)
     {
         $segments = self::getUriSegments();
         return isset($segments[$segment]) ? $segments[$segment] : null;
+    }
+
+    /**
+     * Create safe url.
+     *
+     *  <code>
+     *      $url = Url::sanitizeURL($url);
+     *  </code>
+     *
+     * @access  public
+     * @param  string $url Url to sanitize
+     * @return string
+     */
+    public static function sanitizeURL($url)
+    {
+        $url = trim($url);
+        $url = rawurldecode($url);
+        $url = str_replace(array('--', '&quot;', '!', '@', '#', '$', '%', '^', '*', '(', ')', '+', '{', '}', '|', ':', '"', '<', '>',
+            '[', ']', '\\', ';', "'", ',', '*', '+', '~', '`', 'laquo', 'raquo', ']>', '&#8216;', '&#8217;', '&#8220;', '&#8221;', '&#8211;', '&#8212;'),
+            array('-', '-', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''),
+            $url);
+        $url = str_replace('--', '-', $url);
+        $url = rtrim($url, "-");
+        $url = str_replace('..', '', $url);
+        $url = str_replace('//', '', $url);
+        $url = preg_replace('/^\//', '', $url);
+        $url = preg_replace('/^\./', '', $url);
+        return $url;
+    }
+
+    /**
+     * Sanitize URL to prevent XSS - Cross-site scripting
+     *
+     *  <code>
+     *      Url::runSanitizeURL();
+     *  </code>
+     *
+     * @access  public
+     * @return void
+     */
+    public function runSanitizeURL()
+    {
+        $_GET = array_map(array($this, 'sanitizeURL'), $_GET);
     }
 }
